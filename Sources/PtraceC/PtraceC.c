@@ -5,7 +5,18 @@
 
 #define disable_gdb cDFsdgBmgfghDFE3FGw4
 
+
 void disable_gdb() {
+    #if defined (__arm64__)
+    asm volatile(
+        "mov x0, #26\n" // ptrace
+        "mov x1, #31\n" // PT_DENY_ATTACH
+        "mov x2, #0\n"
+        "mov x3, #0\n"
+        "mov x16, #0\n"
+        "svc #128\n"
+    );
+    #elif defined(__x86_64__)
     __asm(
         "movq $0, %rcx\n"
         "movq $0, %rdx\n"
@@ -14,19 +25,5 @@ void disable_gdb() {
         "movq $0x200001A, %rax\n"
         "syscall\n"
     );
+    #endif
 }
-
-#if defined (__arm64__)
-#define prevent_debugger PfdVSCqqteGFWxmSPFAw // Obfuscate function name
-void prevent_debugger() {
-    asm volatile (
-        "mov x0, #26\n" // ptrace syscall (26 in XNU)
-        "mov x1, #31\n" // PT_DENY_ATTACH (0x1f) - first arg
-        "mov x2, #0\n"
-        "mov x3, #0\n"
-        "mov x16, #0\n"
-        "svc #128\n"    // make syscall
-    );
-}
-
-#endif
